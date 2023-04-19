@@ -1,5 +1,24 @@
 # Depository APIs
 
+### GET /depository/basic/nonce
+
+Used to get current nonce of a account
+
+#### Example
+
+```shell
+curl -X GET \
+  http://localhost:9999/depository/basic/currentNonce?account=xxx 
+```
+
+#### Response
+
+```json
+{
+  "nonce": "xxx"
+}
+```
+
 ### GET /depository/basic/total/hf/metadata
 
 Used to get depository contract's metadta
@@ -82,9 +101,9 @@ Used to create a depository with value
 curl -X POST \
   http://localhost:9999/depository/basic/putValue \
   -H 'content-type: application/json' \
-  -d '{	
-	"message": "base64_encoded_string_of_message",
-	"value": "xxx"
+  -d '{ 
+ "message": "base64_encoded_string_of_message",
+ "value": "xxx"
 }'
 ```
 
@@ -93,5 +112,31 @@ curl -X POST \
 ```json
 {
   "kid": "xxxxx"
+}
+```
+
+### POST /depository/basic/verifyValue
+
+Used to verify a depository with value
+
+#### Example
+
+```shell
+curl -X POST \
+  http://localhost:9999/depository/basic/verifyValue \
+  -H 'content-type: application/json' \
+  -d '{ 
+ "kid": "xxx",
+  "index": "xxx",
+ "value": "xxx"
+}'
+```
+
+#### Response
+
+```json
+{
+  "status": "xxxxx",
+  "reason": "xxx"
 }
 ```

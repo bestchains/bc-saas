@@ -50,6 +50,14 @@ func (basic *Basic) Initialize() error {
 	return nil
 }
 
+func (basic *Basic) CurrentNonce(account string) (uint64, error) {
+	result, err := basic.contract.EvaluateTransaction("Current", account)
+	if err != nil {
+		return 0, utils.ParseTxError(err)
+	}
+	return strconv.ParseUint(string(result), 10, 64)
+}
+
 func (basic *Basic) Total() (uint64, error) {
 	result, err := basic.contract.EvaluateTransaction("Total")
 	if err != nil {

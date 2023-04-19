@@ -95,6 +95,7 @@ func run() error {
 	basicHandler := handler.NewBasicHandler(basicContract)
 	// basic routes
 	basic := depository.Group("basic")
+	basic.Get("currentNonce", basicHandler.CurrentNonce)
 	basic.Get("total", basicHandler.Total)
 	basic.Post("putValue", basicHandler.PutValue)
 	basic.Get("getValue", basicHandler.GetValue)
