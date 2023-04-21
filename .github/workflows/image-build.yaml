@@ -17,7 +17,7 @@ jobs:
       - name: Set Variable
         id: set-env
         run: |
-          echo "TAG=$(git describe --abbrev=0 --tags --match 'v*' 2>/dev/null || echo 'v0.1.0')" >> $GITHUB_OUTPUT
+          echo "TAG=$(git describe --abbrev=0 --tags --match 'v*' 2>/dev/null || echo 'v0.0.1')" >> $GITHUB_OUTPUT
           echo "DATE=$(TZ=Asia/Shanghai date +'%Y%m%d')" >> $GITHUB_OUTPUT
       - name: Show Variable
         run: echo "varibables ${{ steps.set-env.outputs.TAG }}-${{ steps.set-env.outputs.DATE }}"
