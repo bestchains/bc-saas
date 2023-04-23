@@ -17,13 +17,19 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/bestchains/bc-explorer/pkg/network"
 	"github.com/bestchains/bc-saas/pkg/contracts"
 	handler "github.com/bestchains/bc-saas/pkg/handlers"
+	listener "github.com/bestchains/bc-saas/pkg/listener"
+	"github.com/bestchains/bc-saas/pkg/models"
+	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -34,6 +40,8 @@ var (
 	profile  = flag.String("profile", "./network.json", "profile to connect with blockchain network")
 	contract = flag.String("contract", "depository", "contract name")
 	addr     = flag.String("addr", ":9999", "used to listen and serve http requests")
+	db       = flag.String("db", "pg", "which database to use, default is pg(postgresql)")
+	dsn      = flag.String("dsn", "postgres://bestchains:Passw0rd!@127.0.0.1:5432/bc-explorer?sslmode=disable", "database connection string")
 )
 
 func main() {
@@ -60,6 +68,12 @@ func run() error {
 	if err != nil {
 		return err
 	}
+
+	pctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	watcher := listener.NewLogListener()
+	klog.Info("init db...")
 
 	klog.Infoln("Starting a digital depository server")
 
@@ -101,6 +115,30 @@ func run() error {
 	basic.Get("getValue", basicHandler.GetValue)
 	basic.Post("verifyValue", basicHandler.VerifyValue)
 
+	if *db == "pg" {
+		klog.Infoln("Using postgreSQL")
+		opts, err := pg.ParseURL(*dsn)
+		if err != nil {
+			return err
+		}
+		pgDB := pg.Connect(opts)
+		defer pgDB.Close()
+		if err := pgDB.Ping(pctx); err != nil {
+			panic(err)
+		}
+		orm.SetTableNameInflector(func(s string) string {
+			return fmt.Sprintf("%s_%s_%s", profile.ID, profile.Channel, s)
+		})
+
+		if err := models.Init(pgDB); err != nil {
+			panic(err)
+		}
+		watcher, err = listener.NewListener(client, basicContract, pgDB, *contract, profile.Channel)
+		if err != nil {
+			panic(err)
+		}
+	}
+	go watcher.Events(pctx)
 	// NOTE: DISABLE ACL
 	// acl handlers
 	// aclContract, err := contracts.NewACL(client, *contract)
