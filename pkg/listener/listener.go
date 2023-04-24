@@ -127,7 +127,7 @@ func (l *listener) Events(ctx context.Context) {
 				ContentType:      vd.ContentID,
 				TrustedTimestamp: vd.TrustedTimestamp,
 			}
-			klog.V(5).Infof("[Debug] inser vd %+v, d: %+v into db", vd, d)
+			klog.V(5).Infof("[Debug] insert vd %+v, d: %+v into db", vd, d)
 
 			if _, err := l.db.Model(&d).Insert(); err != nil {
 				klog.Errorf("[Error] failed to insert data, return error %s", err)
