@@ -251,8 +251,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/bestchains/bc-explorer v0.0.0-20230424021950-a328acef776d h1:tM2bZArYIJWzcH/frxpG1jXA8E9MSc2zPIckhGtAiAc=
-github.com/bestchains/bc-explorer v0.0.0-20230424021950-a328acef776d/go.mod h1:NliUv5MS0caWSoldcoZuIQtDRUDMHz2w0hswy4Ztk0I=
+github.com/bestchains/bc-explorer v0.0.0-20230424103342-da45cd6dda95 h1:ow/Y+xh5NAWZX0k0of7twi0z9pHh443HnzKK540djmM=
+github.com/bestchains/bc-explorer v0.0.0-20230424103342-da45cd6dda95/go.mod h1:NliUv5MS0caWSoldcoZuIQtDRUDMHz2w0hswy4Ztk0I=
 github.com/bestchains/fabric-operator v0.1.3-0.20230411015730-8d16a2502ccf h1:ICNbCfApDzqNON66BGm2Y3LYTL142yXyJIEjD0NnPyA=
 github.com/bestchains/fabric-operator v0.1.3-0.20230411015730-8d16a2502ccf/go.mod h1:Nq26XGiNjg2gxWzfOtKkaKtnk6k4yGs5+jLCOfqatRY=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=

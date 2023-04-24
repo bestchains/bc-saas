@@ -3,7 +3,7 @@ module github.com/bestchains/bc-saas
 go 1.19
 
 require (
-	github.com/bestchains/bc-explorer v0.0.0-20230424021950-a328acef776d
+	github.com/bestchains/bc-explorer v0.0.0-20230424103342-da45cd6dda95
 	github.com/go-pg/pg/v10 v10.11.0
 	github.com/gofiber/fiber/v2 v2.43.0
 	github.com/golangci/golangci-lint v1.43.0
