@@ -41,7 +41,7 @@ var (
 	contract = flag.String("contract", "depository", "contract name")
 	addr     = flag.String("addr", ":9999", "used to listen and serve http requests")
 	db       = flag.String("db", "pg", "which database to use, default is pg(postgresql)")
-	dsn      = flag.String("dsn", "postgres://bestchains:Passw0rd!@127.0.0.1:5432/bc-explorer?sslmode=disable", "database connection string")
+	dsn      = flag.String("dsn", "postgres://bestchains:Passw0rd!@127.0.0.1:5432/bc-saas?sslmode=disable", "database connection string")
 )
 
 func main() {
