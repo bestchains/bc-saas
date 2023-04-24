@@ -23,10 +23,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/bestchains/bc-explorer/pkg/auth"
 	"github.com/bestchains/bc-explorer/pkg/network"
 	"github.com/bestchains/bc-saas/pkg/contracts"
 	handler "github.com/bestchains/bc-saas/pkg/handlers"
-	listener "github.com/bestchains/bc-saas/pkg/listener"
+	"github.com/bestchains/bc-saas/pkg/listener"
 	"github.com/bestchains/bc-saas/pkg/models"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -37,15 +38,15 @@ import (
 )
 
 var (
-	profile  = flag.String("profile", "./network.json", "profile to connect with blockchain network")
-	contract = flag.String("contract", "depository", "contract name")
-	addr     = flag.String("addr", ":9999", "used to listen and serve http requests")
-	db       = flag.String("db", "pg", "which database to use, default is pg(postgresql)")
-	dsn      = flag.String("dsn", "postgres://bestchains:Passw0rd!@127.0.0.1:5432/bc-saas?sslmode=disable", "database connection string")
+	profile    = flag.String("profile", "./network.json", "profile to connect with blockchain network")
+	contract   = flag.String("contract", "depository", "contract name")
+	addr       = flag.String("addr", ":9999", "used to listen and serve http requests")
+	db         = flag.String("db", "pg", "which database to use, default is pg(postgresql)")
+	dsn        = flag.String("dsn", "postgres://bestchains:Passw0rd!@127.0.0.1:5432/bc-saas?sslmode=disable", "database connection string")
+	authMethod = flag.String("auth", "none", "user authentication method, none, oidc or kubernetes")
 )
 
 func main() {
-	klog.InitFlags(nil)
 	flag.Parse()
 
 	if err := run(); err != nil {
@@ -88,6 +89,10 @@ func run() error {
 	app.Use(cors.New(cors.ConfigDefault))
 	app.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
+	}))
+	app.Use(auth.New(context.TODO(), auth.Config{
+		AuthMethod:    *authMethod,
+		SkipAuthorize: true,
 	}))
 	depository := app.Group("depository")
 
