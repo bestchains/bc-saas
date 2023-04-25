@@ -1,6 +1,6 @@
 # Depository APIs
 
-### GET /depository/basic/nonce
+### GET /basic/nonce
 
 Used to get current nonce of a account
 
@@ -8,7 +8,7 @@ Used to get current nonce of a account
 
 ```shell
 curl -X GET \
-  http://localhost:9999/depository/basic/currentNonce?account=xxx 
+  http://localhost:9999/basic/currentNonce?account=xxx 
 ```
 
 #### Response
@@ -19,7 +19,7 @@ curl -X GET \
 }
 ```
 
-### GET /depository/basic/total/hf/metadata
+### GET /basic/total/hf/metadata
 
 Used to get depository contract's metadta
 
@@ -27,7 +27,7 @@ Used to get depository contract's metadta
 
 ```shell
 curl -X GET \
-  http://localhost:9999/depository/hf/metadata 
+  http://localhost:9999/hf/metadata 
 ```
 
 #### Response
@@ -40,7 +40,7 @@ curl -X GET \
 
 > Note: `content` is a base64 encoded json
 
-### GET /depository/basic/total
+### GET /basic/total
 
 Used to get total count of depositories
 
@@ -48,7 +48,7 @@ Used to get total count of depositories
 
 ```shell
 curl -X GET \
-  http://localhost:9999/depository/basic/total
+  http://localhost:9999/basic/total
 ```
 
 #### Response
@@ -59,7 +59,7 @@ curl -X GET \
 }
 ```
 
-### Get /depository/basic/getValue
+### Get /basic/getValue
 
 Used to get depository value
 
@@ -71,14 +71,14 @@ We support to get depository value by its `index` or `kid`
 
 ```shell
 curl -X GET \
-  'http://localhost:9999/depository/basic/getValue?index=1'
+  'http://localhost:9999/basic/getValue?index=1'
 ```
 
 2. By kid(key id)
 
 ```shell
 curl -X GET \
-  'http://localhost:9999/depository/basic/getValue?kid=xxx'
+  'http://localhost:9999/basic/getValue?kid=xxx'
 ```
 
 #### Response
@@ -91,7 +91,7 @@ curl -X GET \
 }
 ```
 
-### POST /depository/basic/putValue
+### POST /basic/putValue
 
 Used to create a depository with value
 
@@ -99,7 +99,7 @@ Used to create a depository with value
 
 ```shell
 curl -X POST \
-  http://localhost:9999/depository/basic/putValue \
+  http://localhost:9999/basic/putValue \
   -H 'content-type: application/json' \
   -d '{ 
  "message": "base64_encoded_string_of_message",
@@ -115,7 +115,7 @@ curl -X POST \
 }
 ```
 
-### POST /depository/basic/verifyValue
+### POST /basic/verifyValue
 
 Used to verify a depository with value
 
@@ -123,7 +123,7 @@ Used to verify a depository with value
 
 ```shell
 curl -X POST \
-  http://localhost:9999/depository/basic/verifyValue \
+  http://localhost:9999/basic/verifyValue \
   -H 'content-type: application/json' \
   -d '{ 
  "kid": "xxx",
@@ -139,4 +139,36 @@ curl -X POST \
   "status": "xxxxx",
   "reason": "xxx"
 }
+```
+
+### GET /basic/depositories
+List depositories
+```shell
+curl http://localhost:9999/basic/depositories
+```
+
+`query参数`:
+| name | description | required | default |
+| :--: | :--: | :--: | :--: |
+| from | pagination | N | 0 |
+| size | pagination | N | 10 |
+| startTime | start time (1234), unit is second | N | 0 |
+| endTime | end time  | N | 0 |
+| name | depository name | N | |
+| contentName | file name or some description | N | |
+| kid | depository id | N | |
+
+```json
+{"count":4,"data":[{"index":"25","kid":"5651d9ae0e5a834afda3fac0e1e743ff3ced5e9d","platform":"bestchains","operator":"","owner":"","blockNumber":42,"name":"abc","contentName":"file name","contentID":"some hash","contentType":"some hash","trustedTimestamp":"1682406287"}]}
+```
+
+### GET /basic/depositories/:kid
+Get depository by kid
+
+```shell
+curl http://localhost:9999/basic/depositories/5651d9ae0e5a834afda3fac0e1e743ff3ced5e9d
+```
+
+```json
+{"index":"22","kid":"28fd8a24340220857c9857dbeb3f365e505951ca","platform":"bestchains","operator":"","owner":"","blockNumber":37,"name":"dep1","contentName":"","contentID":"lk7234jjsdfsf","contentType":"lk7234jjsdfsf","trustedTimestamp":"1682405989"}
 ```

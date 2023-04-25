@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/bestchains/bc-explorer/pkg/network"
 	"github.com/bestchains/bc-saas/pkg/contracts"
@@ -56,7 +57,9 @@ func NewListener(fabClient *network.FabricClient, cc *contracts.Basic, db *pg.DB
 		db:             db,
 	}
 	ctx := context.Background()
-	events, err := fabClient.Channel("").ChaincodeEvents(ctx, contractName)
+	startBlock := models.MaxBlockNumber(db)
+    klog.Infof("listener start with blockNubmer %d", startBlock)
+	events, err := fabClient.Channel("").ChaincodeEvents(ctx, contractName, client.WithStartBlock(startBlock))
 	if err != nil {
 		return nil, err
 	}
@@ -121,11 +124,12 @@ func (l *listener) Events(ctx context.Context) {
 				Platform:         vd.Platform,
 				Operator:         eventPayload.Operator,
 				Owner:            eventPayload.Owner,
-				BlockNumber:      fmt.Sprintf("%d", e.BlockNumber),
-				ContentName:      vd.Name,
+				BlockNumber:      e.BlockNumber,
+				Name:             vd.Name,
+				ContentName:      vd.ContentName,
 				ContentID:        vd.ContentID,
 				ContentType:      vd.ContentID,
-				TrustedTimestamp: vd.TrustedTimestamp,
+				TrustedTimestamp: fmt.Sprintf("%d", time.Now().Unix()),
 			}
 			klog.V(5).Infof("[Debug] insert vd %+v, d: %+v into db", vd, d)
 
@@ -133,7 +137,7 @@ func (l *listener) Events(ctx context.Context) {
 				klog.Errorf("[Error] failed to insert data, return error %s", err)
 				continue
 			}
-			klog.Infof("[Success] insert %s to db", d.BlockNumber)
+			klog.Infof("[Success] insert %d to db", d.BlockNumber)
 		case <-ctx.Done():
 			klog.Info("context break down")
 			return

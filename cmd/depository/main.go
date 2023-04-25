@@ -26,6 +26,7 @@ import (
 	"github.com/bestchains/bc-explorer/pkg/auth"
 	"github.com/bestchains/bc-explorer/pkg/network"
 	"github.com/bestchains/bc-saas/pkg/contracts"
+	"github.com/bestchains/bc-saas/pkg/depositories"
 	handler "github.com/bestchains/bc-saas/pkg/handlers"
 	"github.com/bestchains/bc-saas/pkg/listener"
 	"github.com/bestchains/bc-saas/pkg/models"
@@ -74,10 +75,41 @@ func run() error {
 	defer cancel()
 
 	watcher := listener.NewLogListener()
+	dbHandler := depositories.NewLoggerHandler()
+
+	// basic handlers
+	klog.Info("init contract client")
+	basicContract, err := contracts.NewBasic(client, *contract)
+	if err != nil {
+		return err
+	}
+
 	klog.Info("init db...")
+	if *db == "pg" {
+		klog.Infoln("Using postgreSQL")
+		opts, err := pg.ParseURL(*dsn)
+		if err != nil {
+			return err
+		}
+		pgDB := pg.Connect(opts)
+		defer pgDB.Close()
+		if err := pgDB.Ping(pctx); err != nil {
+			panic(err)
+		}
+		pgDB.AddQueryHook(&models.Depository{})
+		orm.SetTableNameInflector(func(s string) string {
+			return fmt.Sprintf("%s_%s_%s", profile.ID, profile.Channel, s)
+		})
 
-	klog.Infoln("Starting a digital depository server")
-
+		if err := models.Init(pgDB); err != nil {
+			panic(err)
+		}
+		watcher, err = listener.NewListener(client, basicContract, pgDB, *contract, profile.Channel)
+		if err != nil {
+			panic(err)
+		}
+		dbHandler = depositories.NewDBHandler(pgDB)
+	}
 	klog.Infoln("Creating http server")
 	app := fiber.New(fiber.Config{
 		CaseSensitive: true,
@@ -94,7 +126,6 @@ func run() error {
 		AuthMethod:    *authMethod,
 		SkipAuthorize: true,
 	}))
-	depository := app.Group("depository")
 
 	// hyperledger handlers
 	hfContract, err := contracts.NewHyperledger(client, *contract)
@@ -103,46 +134,22 @@ func run() error {
 	}
 	hfHandler := handler.NewHyperledgerHandler(hfContract)
 	// hyperledger routes
-	hf := depository.Group("hf")
+	hf := app.Group("hf")
 	hf.Get("metadata", hfHandler.GetMetadata)
 
-	// basic handlers
-	basicContract, err := contracts.NewBasic(client, *contract)
-	if err != nil {
-		return err
-	}
-	basicHandler := handler.NewBasicHandler(basicContract)
+	basicHandler := handler.NewBasicHandler(basicContract, dbHandler)
 	// basic routes
-	basic := depository.Group("basic")
+	basic := app.Group("basic")
 	basic.Get("currentNonce", basicHandler.CurrentNonce)
 	basic.Get("total", basicHandler.Total)
 	basic.Post("putValue", basicHandler.PutValue)
 	basic.Get("getValue", basicHandler.GetValue)
 	basic.Post("verifyValue", basicHandler.VerifyValue)
+	basic.Get("depositories", basicHandler.List)
+	basic.Get("depositories/:kid", basicHandler.Get)
 
-	if *db == "pg" {
-		klog.Infoln("Using postgreSQL")
-		opts, err := pg.ParseURL(*dsn)
-		if err != nil {
-			return err
-		}
-		pgDB := pg.Connect(opts)
-		defer pgDB.Close()
-		if err := pgDB.Ping(pctx); err != nil {
-			panic(err)
-		}
-		orm.SetTableNameInflector(func(s string) string {
-			return fmt.Sprintf("%s_%s_%s", profile.ID, profile.Channel, s)
-		})
+	klog.Infoln("Starting a digital depository server")
 
-		if err := models.Init(pgDB); err != nil {
-			panic(err)
-		}
-		watcher, err = listener.NewListener(client, basicContract, pgDB, *contract, profile.Channel)
-		if err != nil {
-			panic(err)
-		}
-	}
 	go watcher.Events(pctx)
 	// NOTE: DISABLE ACL
 	// acl handlers
