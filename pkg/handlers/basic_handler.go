@@ -19,11 +19,15 @@ package handler
 import (
 	"encoding/base64"
 	"encoding/json"
+	"net/http"
 
 	"github.com/bestchains/bc-saas/pkg/contracts"
+	"github.com/bestchains/bc-saas/pkg/depositories"
 	"github.com/bestchains/bc-saas/pkg/utils"
+	"github.com/go-pg/pg/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
+	"k8s.io/klog/v2"
 )
 
 // KeyValue defines common key-value fields for a depository
@@ -37,6 +41,7 @@ type KeyValue struct {
 // ValueDepository defines valuable fields for a depository
 type ValueDepository struct {
 	Name             string `json:"name"`
+	ContentName      string `json:"contentName"`
 	ContentType      string `json:"contentType"`
 	ContentID        string `json:"contentID"` // hash of the file
 	TrustedTimestamp string `json:"trustedTimestamp"`
@@ -50,12 +55,14 @@ type VerifyStatus struct {
 }
 
 type BasicHandler struct {
-	basic *contracts.Basic
+	basic     *contracts.Basic
+	dbHandler depositories.Interface
 }
 
-func NewBasicHandler(basic *contracts.Basic) BasicHandler {
+func NewBasicHandler(basic *contracts.Basic, h depositories.Interface) BasicHandler {
 	return BasicHandler{
-		basic: basic,
+		basic:     basic,
+		dbHandler: h,
 	}
 }
 
@@ -190,4 +197,59 @@ func (h *BasicHandler) getValue(kv KeyValue) (*KeyValue, error) {
 	}
 
 	return &kv, nil
+}
+
+func (h *BasicHandler) List(ctx *fiber.Ctx) error {
+	klog.Info("BasicHandler List Depositories")
+	klog.V(5).Infof(" with ctx %+v\n", *ctx)
+
+	arg := depositories.DepositoryCond{
+		From:        ctx.QueryInt("from", 0),
+		Size:        ctx.QueryInt("size", 10),
+		StartTime:   int64(ctx.QueryInt("startTime", 0)),
+		EndTime:     int64(ctx.QueryInt("endTime", 0)),
+		Name:        ctx.Query("name"),
+		KID:         ctx.Query("kid"),
+		ContentName: ctx.Query("contentName", ""),
+	}
+
+	result, count, err := h.dbHandler.List(arg)
+	if err != nil {
+		klog.Errorf("[Error] list depositories error %s", err)
+		ctx.Status(http.StatusInternalServerError)
+		return ctx.JSON(map[string]string{
+			"msg": err.Error(),
+		})
+	}
+	data := map[string]interface{}{
+		"data":  result,
+		"count": count,
+	}
+	return ctx.JSON(data)
+}
+
+func (h *BasicHandler) Get(ctx *fiber.Ctx) error {
+	klog.Info("BasicHandler Get Depository")
+	klog.V(5).Infof(" with ctx %+v\n", *ctx)
+
+	kid := ctx.Params("kid")
+	if kid == "" {
+		ctx.Status(http.StatusInternalServerError)
+		return ctx.JSON(map[string]string{
+			"msg": "kid can't be empty",
+		})
+	}
+	arg := depositories.DepositoryCond{KID: kid}
+	result, err := h.dbHandler.Get(arg)
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError)
+		if err == pg.ErrNoRows {
+			ctx.Status(http.StatusNotFound)
+		}
+		klog.Errorf("[Error] Get %s error %s", kid, err)
+		return ctx.JSON(map[string]string{
+			"msg": err.Error(),
+		})
+	}
+	return ctx.JSON(result)
 }
