@@ -55,20 +55,20 @@ type VerifyStatus struct {
 }
 
 type BasicHandler struct {
-	basic     *contracts.Basic
-	dbHandler depositories.Interface
+	contractClient *contracts.Depository
+	dbHandler      depositories.Interface
 }
 
-func NewBasicHandler(basic *contracts.Basic, h depositories.Interface) BasicHandler {
+func NewBasicHandler(contractClient *contracts.Depository, h depositories.Interface) BasicHandler {
 	return BasicHandler{
-		basic:     basic,
-		dbHandler: h,
+		contractClient: contractClient,
+		dbHandler:      h,
 	}
 }
 
 func (h *BasicHandler) CurrentNonce(ctx *fiber.Ctx) error {
 	account := ctx.Query("account")
-	nonce, err := h.basic.CurrentNonce(account)
+	nonce, err := h.contractClient.CurrentNonce(account)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -79,12 +79,44 @@ func (h *BasicHandler) CurrentNonce(ctx *fiber.Ctx) error {
 
 // Total
 func (h *BasicHandler) Total(ctx *fiber.Ctx) error {
-	total, err := h.basic.Total()
+	total, err := h.contractClient.Total()
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	return ctx.JSON(map[string]interface{}{
 		"total": total,
+	})
+}
+
+func (h *BasicHandler) PutUntrustValue(ctx *fiber.Ctx) error {
+	var err error
+	// only value is required in untrust put
+	kv := new(KeyValue)
+	err = ctx.BodyParser(kv)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	// validate if value is a `ValueDepository`
+	if kv.Value == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "value cannot be empty")
+	}
+	rawValue, err := base64.StdEncoding.DecodeString(kv.Value)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, errors.Wrap(err, "invalid value").Error())
+	}
+	value := new(ValueDepository)
+	if err = json.Unmarshal(rawValue, value); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, errors.Wrap(err, "invalid value").Error())
+	}
+
+	kid, err := h.contractClient.PutUntrustValue(kv.Value)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return ctx.JSON(&KeyValue{
+		KID: kid,
 	})
 }
 
@@ -123,7 +155,7 @@ func (h *BasicHandler) PutValue(ctx *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, errors.Wrap(err, "invalid message").Error())
 	}
 
-	kid, err := h.basic.PutValue(message, kv.Value)
+	kid, err := h.contractClient.PutValue(message, kv.Value)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -183,13 +215,13 @@ func (h *BasicHandler) GetValue(ctx *fiber.Ctx) error {
 
 func (h *BasicHandler) getValue(kv KeyValue) (*KeyValue, error) {
 	if kv.Index != "" {
-		value, err := h.basic.GetValueByIndex(kv.Index)
+		value, err := h.contractClient.GetValueByIndex(kv.Index)
 		if err != nil {
 			return nil, err
 		}
 		kv.Value = value
 	} else if kv.KID != "" {
-		value, err := h.basic.GetValueByKID(kv.KID)
+		value, err := h.contractClient.GetValueByKID(kv.KID)
 		if err != nil {
 			return nil, err
 		}

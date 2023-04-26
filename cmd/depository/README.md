@@ -18,16 +18,19 @@ go build -o client main.go
 cd bc-saas/cmd/depository
 go build main.go
 
-PUTUNTRUSTVALUE="1" ./main -profile profile.json -contract proof -dsn 'postgres://bestchains:Passw0rd!@172.22.96.209:5432/bc-saas?sslmode=disable'
+./main -profile profile.json -contract depository -dsn 'postgres://bestchains:Passw0rd!@172.22.96.209:5432/bc-saas?sslmode=disable'
 ```
 
 ### Call the contract and confirming that the data is written to the database
 
-1. call contract
+1. call bc-saas PutUntrustValue
 ```shell
-cd bc-saas/cmd/depository;
-cp /path/to/bc-explorer/cmd/client/client .
-./client -profile profile.json -contract proof -method PutUntrustValue -args 'eyJuYW1lIjoiYWJjIiwiY29udGVudFR5cGUiOiAianNvbiIsImNvbnRlbnRJRCI6ICJpZCIsInRydXN0ZWRUaW1lc3RhbXAiOiAiMTIzNCIsInBsYXRmb3JtIjogImJlc3RjaGFpbnMifQo='
+ curl -X POST \
+  localhost:9999/basic/putUntrustValue \
+  -H 'content-type: application/json' \
+   -d '{
+   "value":"eyJuYW1lIjoiYWJjIiwiY29udGVudFR5cGUiOiAianNvbiIsImNvbnRlbnRJRCI6ICJpZCIsInRydXN0ZWRUaW1lc3RhbXAiOiAiMTIzNCIsInBsYXRmb3JtIjogImJlc3RjaGFpbnMifQo="
+}'
 ```
 
 2. check db
