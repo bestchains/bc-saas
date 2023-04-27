@@ -18,126 +18,57 @@ package listener
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
-	"os"
-	"time"
 
-	"github.com/bestchains/bc-explorer/pkg/network"
-	"github.com/bestchains/bc-saas/pkg/contracts"
-	handler "github.com/bestchains/bc-saas/pkg/handlers"
-	"github.com/bestchains/bc-saas/pkg/models"
-	"github.com/go-pg/pg/v10"
+	"github.com/bestchains/bc-saas/pkg/events"
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"k8s.io/klog/v2"
 )
 
-const (
-	BasicChaincodeEvent          = "PutValue"
-	BasicChaincodeUntrustedEvent = "PutUntrustValue"
-	TestUntrustEventENV          = "PUTUNTRUSTVALUE"
-)
-
+// listener listens chaincode events
 type listener struct {
-	contractName   string
-	channel        string
-	events         <-chan *client.ChaincodeEvent
-	fabClient      *network.FabricClient
-	contractClient *contracts.Basic
-	db             *pg.DB
+	// event registered and its handler
+	registeredEvents map[events.Event]events.EventHandler
+
+	eventsSub <-chan *client.ChaincodeEvent
 }
 
-func NewListener(fabClient *network.FabricClient, cc *contracts.Basic, db *pg.DB, contractName, channel string) (Listener, error) {
+func NewListener(eventsSub <-chan *client.ChaincodeEvent, registeredEvents map[events.Event]events.EventHandler) (Listener, error) {
 	l := &listener{
-		contractName:   contractName,
-		channel:        channel,
-		fabClient:      fabClient,
-		contractClient: cc,
-		db:             db,
+		eventsSub: eventsSub,
 	}
-	ctx := context.Background()
-	startBlock := models.MaxBlockNumber(db)
-    klog.Infof("listener start with blockNubmer %d", startBlock)
-	events, err := fabClient.Channel("").ChaincodeEvents(ctx, contractName, client.WithStartBlock(startBlock))
-	if err != nil {
-		return nil, err
+
+	klog.Infof("listener start with blockNubmer %d")
+	l.eventsSub = eventsSub
+
+	// registeredEvents
+	if registeredEvents == nil {
+		registeredEvents = make(map[events.Event]events.EventHandler)
 	}
-	l.events = events
+	l.registeredEvents = registeredEvents
+
 	return l, nil
 }
 
-type kv struct {
-	Index    uint64 `json:"index,omitempty"`
-	KID      string `json:"kid,omitempty"`
-	Operator string `json:"operator"`
-	Owner    string `json:"owner"`
-}
-
 func (l *listener) Events(ctx context.Context) {
-	klog.Infof("starting fetch contract %s's events", l.contractName)
-	whichMode := os.Getenv(TestUntrustEventENV)
+	klog.Info("starting fetch events")
+	var err error
 	for {
 		select {
-		case e := <-l.events:
-			if whichMode == "" && e.EventName != BasicChaincodeEvent {
-				klog.Warningf("Event %s, expect %s, skip", e.EventName, BasicChaincodeEvent)
+		case e := <-l.eventsSub:
+			// check whether event registered
+			eventHandler, ok := l.registeredEvents[events.Event(e.EventName)]
+			if !ok {
+				klog.Warningf("Event %s not registered, skip", e.EventName)
 				continue
 			}
-			if whichMode != "" && e.EventName != BasicChaincodeUntrustedEvent {
-				klog.Warningf("Event %s, expect %s, skip", e.EventName, BasicChaincodeUntrustedEvent)
+			err = eventHandler(e)
+			if err != nil {
+				klog.Errorf("[Error] handle event %s erorr %s", e.EventName, err.Error())
 				continue
 			}
 
 			klog.V(5).Infof("[Debug] event %+v", *e)
 
-			eventPayload := kv{}
-			if err := json.Unmarshal(e.Payload, &eventPayload); err != nil {
-				klog.Errorf("[Error] unmarshal event payload error %s", err)
-				continue
-			}
-			klog.V(5).Infof("[Debug] event payload %+v", eventPayload)
-
-			what, err := l.contractClient.GetValueByKID(eventPayload.KID)
-			if err != nil {
-				klog.Errorf("[Error] GetValue By KID %s, error %s", eventPayload.KID, err)
-				continue
-			}
-			klog.V(5).Infof("[Debug] Call GetValueByKID %s get %s", eventPayload.KID, what)
-
-			vdBytes, err := base64.StdEncoding.DecodeString(what)
-			if err != nil {
-				klog.Errorf("[Error] decode value %s erorr %s", what, err)
-				continue
-			}
-			klog.V(5).Infof("[Debug] value depository bytes: %s", string(vdBytes))
-
-			vd := handler.ValueDepository{}
-			if err := json.Unmarshal(vdBytes, &vd); err != nil {
-				klog.Errorf("[Error] unmarshal valueDepository error %s", err)
-				continue
-			}
-
-			d := models.Depository{
-				Index:            fmt.Sprintf("%d", eventPayload.Index),
-				KID:              eventPayload.KID,
-				Platform:         vd.Platform,
-				Operator:         eventPayload.Operator,
-				Owner:            eventPayload.Owner,
-				BlockNumber:      e.BlockNumber,
-				Name:             vd.Name,
-				ContentName:      vd.ContentName,
-				ContentID:        vd.ContentID,
-				ContentType:      vd.ContentID,
-				TrustedTimestamp: fmt.Sprintf("%d", time.Now().Unix()),
-			}
-			klog.V(5).Infof("[Debug] insert vd %+v, d: %+v into db", vd, d)
-
-			if _, err := l.db.Model(&d).Insert(); err != nil {
-				klog.Errorf("[Error] failed to insert data, return error %s", err)
-				continue
-			}
-			klog.Infof("[Success] insert %d to db", d.BlockNumber)
 		case <-ctx.Done():
 			klog.Info("context break down")
 			return

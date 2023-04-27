@@ -25,53 +25,48 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Code Generator
-type Basic struct {
+type Depository struct {
 	contract *gwclient.Contract
 }
 
-func NewBasic(client *network.FabricClient, contract string) (*Basic, error) {
+func NewDepository(client *network.FabricClient, contract string) (*Depository, error) {
 	if client == nil || contract == "" {
 		return nil, errors.New("invalid arguments")
 	}
 
-	basic := &Basic{
+	basic := &Depository{
 		contract: client.Channel("").GetContract(contract),
 	}
 
 	return basic, nil
 }
 
-func (basic *Basic) Initialize() error {
-	_, err := basic.contract.SubmitTransaction("Initialize")
+func (depository *Depository) Initialize() error {
+	_, err := depository.contract.SubmitTransaction("Initialize")
 	if err != nil {
 		return utils.ParseTxError(err)
 	}
 	return nil
 }
 
-func (basic *Basic) CurrentNonce(account string) (uint64, error) {
-	result, err := basic.contract.EvaluateTransaction("Current", account)
+func (depository *Depository) CurrentNonce(account string) (uint64, error) {
+	result, err := depository.contract.EvaluateTransaction("Current", account)
 	if err != nil {
 		return 0, utils.ParseTxError(err)
 	}
 	return strconv.ParseUint(string(result), 10, 64)
 }
 
-func (basic *Basic) Total() (uint64, error) {
-	result, err := basic.contract.EvaluateTransaction("Total")
+func (depository *Depository) Total() (uint64, error) {
+	result, err := depository.contract.EvaluateTransaction("Total")
 	if err != nil {
 		return 0, utils.ParseTxError(err)
 	}
 	return strconv.ParseUint(string(result), 10, 64)
 }
 
-func (basic *Basic) PutValue(msg *utils.Message, val string) (string, error) {
-	rawMsg, err := msg.Marshal()
-	if err != nil {
-		return "", err
-	}
-	kid, err := basic.contract.SubmitTransaction("PutValue", string(rawMsg), val)
+func (depository *Depository) PutUntrustValue(val string) (string, error) {
+	kid, err := depository.contract.SubmitTransaction("PutUntrustValue", val)
 	if err != nil {
 		return "", utils.ParseTxError(err)
 	}
@@ -79,16 +74,29 @@ func (basic *Basic) PutValue(msg *utils.Message, val string) (string, error) {
 	return string(kid), nil
 }
 
-func (basic *Basic) GetValueByIndex(index string) (string, error) {
-	result, err := basic.contract.EvaluateTransaction("GetValueByIndex", index)
+func (depository *Depository) PutValue(msg *utils.Message, val string) (string, error) {
+	rawMsg, err := msg.Marshal()
+	if err != nil {
+		return "", err
+	}
+	kid, err := depository.contract.SubmitTransaction("PutValue", string(rawMsg), val)
+	if err != nil {
+		return "", utils.ParseTxError(err)
+	}
+
+	return string(kid), nil
+}
+
+func (depository *Depository) GetValueByIndex(index string) (string, error) {
+	result, err := depository.contract.EvaluateTransaction("GetValueByIndex", index)
 	if err != nil {
 		return "", utils.ParseTxError(err)
 	}
 	return string(result), nil
 }
 
-func (basic *Basic) GetValueByKID(kid string) (string, error) {
-	result, err := basic.contract.EvaluateTransaction("GetValueByKID", kid)
+func (depository *Depository) GetValueByKID(kid string) (string, error) {
+	result, err := depository.contract.EvaluateTransaction("GetValueByKID", kid)
 	if err != nil {
 		return "", utils.ParseTxError(err)
 	}

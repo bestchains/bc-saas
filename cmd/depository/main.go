@@ -27,6 +27,7 @@ import (
 	"github.com/bestchains/bc-explorer/pkg/network"
 	"github.com/bestchains/bc-saas/pkg/contracts"
 	"github.com/bestchains/bc-saas/pkg/depositories"
+	"github.com/bestchains/bc-saas/pkg/events"
 	handler "github.com/bestchains/bc-saas/pkg/handlers"
 	"github.com/bestchains/bc-saas/pkg/listener"
 	"github.com/bestchains/bc-saas/pkg/models"
@@ -35,6 +36,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"k8s.io/klog/v2"
 )
 
@@ -66,7 +68,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	client, err := network.NewFabricClient(profile)
+	fabClient, err := network.NewFabricClient(profile)
 	if err != nil {
 		return err
 	}
@@ -79,7 +81,7 @@ func run() error {
 
 	// basic handlers
 	klog.Info("init contract client")
-	basicContract, err := contracts.NewBasic(client, *contract)
+	contractClient, err := contracts.NewDepository(fabClient, *contract)
 	if err != nil {
 		return err
 	}
@@ -104,12 +106,26 @@ func run() error {
 		if err := models.Init(pgDB); err != nil {
 			panic(err)
 		}
-		watcher, err = listener.NewListener(client, basicContract, pgDB, *contract, profile.Channel)
+		dbHandler = depositories.NewDBHandler(pgDB)
+
+		// inject events to database once pg is used
+		eventSub, err := fabClient.Channel(profile.Channel).ChaincodeEvents(pctx, *contract, client.WithStartBlock(
+			models.MaxBlockNumber(pgDB),
+		))
 		if err != nil {
 			panic(err)
 		}
-		dbHandler = depositories.NewDBHandler(pgDB)
+		// register Depository related events
+		eventHandler := events.NewDepositoryEventHandler(contractClient, pgDB)
+		watcher, err = listener.NewListener(eventSub, map[events.Event]events.EventHandler{
+			events.DepositoryEventPutUntrustValue: eventHandler.HandlePutValue,
+			events.DepositoryEventPutValue:        eventHandler.HandlePutValue,
+		})
+		if err != nil {
+			panic(err)
+		}
 	}
+
 	klog.Infoln("Creating http server")
 	app := fiber.New(fiber.Config{
 		CaseSensitive: true,
@@ -128,7 +144,7 @@ func run() error {
 	}))
 
 	// hyperledger handlers
-	hfContract, err := contracts.NewHyperledger(client, *contract)
+	hfContract, err := contracts.NewHyperledger(fabClient, *contract)
 	if err != nil {
 		return err
 	}
@@ -137,12 +153,13 @@ func run() error {
 	hf := app.Group("hf")
 	hf.Get("metadata", hfHandler.GetMetadata)
 
-	basicHandler := handler.NewBasicHandler(basicContract, dbHandler)
+	basicHandler := handler.NewBasicHandler(contractClient, dbHandler)
 	// basic routes
 	basic := app.Group("basic")
 	basic.Get("currentNonce", basicHandler.CurrentNonce)
 	basic.Get("total", basicHandler.Total)
 	basic.Post("putValue", basicHandler.PutValue)
+	basic.Post("putUntrustValue", basicHandler.PutUntrustValue)
 	basic.Get("getValue", basicHandler.GetValue)
 	basic.Post("verifyValue", basicHandler.VerifyValue)
 	basic.Get("depositories", basicHandler.List)
