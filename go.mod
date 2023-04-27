@@ -1,6 +1,6 @@
 module github.com/bestchains/bc-saas
 
-go 1.19
+go 1.20
 
 require (
 	github.com/bestchains/bc-explorer v0.0.0-20230424103342-da45cd6dda95
