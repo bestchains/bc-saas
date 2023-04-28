@@ -1,15 +1,18 @@
-<h1>
+# Bestchains SaaS
+
+[![codecov](https://codecov.io/gh/bestchains/bc-saas/branch/main/graph/badge.svg?token=PSLH95TQRS)](https://codecov.io/gh/bestchains/bc-saas)
+
 bc-saas represents software-as-a-service provided in bestchains
-</h1>
 
 Now we have:
 
 - `digital depository` which provide basic capability to manage depositories
 
-
 Service irrelevant architecture:
 
 ![saas_arch](./doc/images/arch.png)
+
+## Usage
 
 ### Prerequsities
 
@@ -42,17 +45,17 @@ Usage of ./bin/depository:
   -auth string
         user authentication method, none, oidc or kubernetes (default "none")
   -addr string
-    	used to listen and serve http requests (default ":9999")
+     used to listen and serve http requests (default ":9999")
   -profile string
-    	profile to connect with blockchain network (default "./network.json")
+     profile to connect with blockchain network (default "./network.json")
   -contract string
-    	contract name (default "depository")
+     contract name (default "depository")
   -db string
         which database to use, default is pg(postgresql) (default "pg")
   -dsn string
         database connection string (default "postgres://bestchains:Passw0rd!@127.0.0.1:5432/bc-saas?sslmode=disable")
   -v value
-    	number for the log level verbosity
+     number for the log level verbosity
 ```
 
 3. start `depository` server
