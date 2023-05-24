@@ -32,9 +32,10 @@ import (
 
 // KeyValue defines common key-value fields for a depository
 type KeyValue struct {
-	Index   string `json:"index,omitempty"`
-	KID     string `json:"kid,omitempty"`
-	Value   string `json:"value,omitempty"`
+	Index string `json:"index,omitempty"`
+	KID   string `json:"kid,omitempty"`
+	Value string `json:"value,omitempty"`
+	// Message is a base64 encoded string of utils.Message
 	Message string `json:"message,omitempty"`
 }
 
@@ -146,12 +147,8 @@ func (h *BasicHandler) PutValue(ctx *fiber.Ctx) error {
 	if kv.Message == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "message cannot be empty")
 	}
-	rawMsg, err := base64.StdEncoding.DecodeString(kv.Message)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, errors.Wrap(err, "invalid message").Error())
-	}
 	message := new(utils.Message)
-	if err = message.Unmarshal(rawMsg); err != nil {
+	if err = message.UnmarshalBase64Str(kv.Message); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, errors.Wrap(err, "invalid message").Error())
 	}
 
