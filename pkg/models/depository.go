@@ -38,6 +38,7 @@ type Depository struct {
 	ContentID        string `json:"contentID" pg:"contentID"`
 	ContentType      string `json:"contentType" pg:"contentType"`
 	TrustedTimestamp string `json:"trustedTimestamp" pg:"trustedTimestamp"`
+	Description      string `json:"description" pg:"description"`
 }
 
 var _ pg.QueryHook = (*Depository)(nil)

@@ -22,13 +22,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bestchains/bc-saas/pkg/contracts"
-	handler "github.com/bestchains/bc-saas/pkg/handlers"
-	"github.com/bestchains/bc-saas/pkg/models"
 	"github.com/go-pg/pg/v10"
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
+
+	"github.com/bestchains/bc-saas/pkg/contracts"
+	handler "github.com/bestchains/bc-saas/pkg/handlers"
+	"github.com/bestchains/bc-saas/pkg/models"
 )
 
 const (
@@ -95,6 +96,7 @@ func (deh *DepositoryEventHandler) HandlePutValue(e *client.ChaincodeEvent) erro
 		ContentID:        vd.ContentID,
 		ContentType:      vd.ContentID,
 		TrustedTimestamp: fmt.Sprintf("%d", time.Now().Unix()),
+		Description:      vd.Description,
 	}
 	klog.V(5).Infof("[Debug] insert vd %+v, d: %+v into db", vd, d)
 

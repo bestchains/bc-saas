@@ -47,6 +47,7 @@ type ValueDepository struct {
 	ContentID        string `json:"contentID"` // hash of the file
 	TrustedTimestamp string `json:"trustedTimestamp"`
 	Platform         string `json:"platform"`
+	Description      string `json:"description,omitempty"`
 }
 
 // VerifyStatus defines response fields for a depository verification
