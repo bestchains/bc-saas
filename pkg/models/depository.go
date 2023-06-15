@@ -25,12 +25,13 @@ import (
 
 // Depository defines valuable fields for a depository
 type Depository struct {
-	Index       string `json:"index" pg:"index"`
-	KID         string `json:"kid" pg:"kid,pk"`
-	Platform    string `json:"platform" pg:"platform"`
-	Operator    string `json:"operator" pg:"operator"`
-	Owner       string `json:"owner" pg:"owner"`
-	BlockNumber uint64 `json:"blockNumber" pg:"blockNumber"`
+	Index         string `json:"index" pg:"index"`
+	KID           string `json:"kid" pg:"kid,pk"`
+	Platform      string `json:"platform" pg:"platform"`
+	Operator      string `json:"operator" pg:"operator"`
+	Owner         string `json:"owner" pg:"owner"`
+	BlockNumber   uint64 `json:"blockNumber" pg:"blockNumber"`
+	TransactionID string `json:"transactionID" pg:"transactionID"`
 
 	// Content related
 	Name             string `json:"name" pg:"name"`
@@ -38,6 +39,7 @@ type Depository struct {
 	ContentID        string `json:"contentID" pg:"contentID"`
 	ContentType      string `json:"contentType" pg:"contentType"`
 	TrustedTimestamp int64  `json:"trustedTimestamp" pg:"trustedTimestamp"`
+	ContentSize      int64  `json:"contentSize" pg:"contentSize"`
 	Description      string `json:"description" pg:"description"`
 }
 
