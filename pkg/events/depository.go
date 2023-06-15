@@ -94,7 +94,7 @@ func (deh *DepositoryEventHandler) HandlePutValue(e *client.ChaincodeEvent) erro
 		Name:             vd.Name,
 		ContentName:      vd.ContentName,
 		ContentID:        vd.ContentID,
-		ContentType:      vd.ContentID,
+		ContentType:      vd.ContentType,
 		TrustedTimestamp: time.Now().Unix(),
 		Description:      vd.Description,
 	}
