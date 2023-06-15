@@ -16,7 +16,11 @@ limitations under the License.
 
 package depositories
 
-import "github.com/bestchains/bc-saas/pkg/models"
+import (
+	"fmt"
+
+	"github.com/bestchains/bc-saas/pkg/models"
+)
 
 type DepositoryCond struct {
 	From, Size             int
@@ -27,17 +31,13 @@ type DepositoryCond struct {
 func (dc *DepositoryCond) ToCond() ([]string, []interface{}) {
 	params := make([]interface{}, 0)
 	cond := make([]string, 0)
-	if dc.Name != "" {
-		cond = append(cond, `"contentName"=?`)
-		params = append(params, dc.Name)
-	}
 	if dc.KID != "" {
 		cond = append(cond, `kid=?`)
 		params = append(params, dc.KID)
 	}
 	if dc.ContentName != "" {
-		cond = append(cond, `"contentName"=?`)
-		params = append(params, dc.ContentName)
+		cond = append(cond, `"contentName" like ?`)
+		params = append(params, fmt.Sprintf(`%%%s%%`, dc.ContentName))
 	}
 
 	if dc.StartTime > 0 {
@@ -49,6 +49,10 @@ func (dc *DepositoryCond) ToCond() ([]string, []interface{}) {
 		params = append(params, dc.EndTime)
 	}
 
+	if len(dc.Name) > 0 {
+		cond = append(cond, `"name" like ?`)
+		params = append(params, fmt.Sprintf(`%%%s%%`, dc.Name))
+	}
 	return cond, params
 }
 
