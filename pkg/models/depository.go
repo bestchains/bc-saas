@@ -37,7 +37,7 @@ type Depository struct {
 	ContentName      string `json:"contentName" pg:"contentName"`
 	ContentID        string `json:"contentID" pg:"contentID"`
 	ContentType      string `json:"contentType" pg:"contentType"`
-	TrustedTimestamp string `json:"trustedTimestamp" pg:"trustedTimestamp"`
+	TrustedTimestamp int64  `json:"trustedTimestamp" pg:"trustedTimestamp"`
 	Description      string `json:"description" pg:"description"`
 }
 

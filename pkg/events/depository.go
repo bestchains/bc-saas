@@ -95,7 +95,7 @@ func (deh *DepositoryEventHandler) HandlePutValue(e *client.ChaincodeEvent) erro
 		ContentName:      vd.ContentName,
 		ContentID:        vd.ContentID,
 		ContentType:      vd.ContentID,
-		TrustedTimestamp: fmt.Sprintf("%d", time.Now().Unix()),
+		TrustedTimestamp: time.Now().Unix(),
 		Description:      vd.Description,
 	}
 	klog.V(5).Infof("[Debug] insert vd %+v, d: %+v into db", vd, d)
