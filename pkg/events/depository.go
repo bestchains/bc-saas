@@ -91,12 +91,14 @@ func (deh *DepositoryEventHandler) HandlePutValue(e *client.ChaincodeEvent) erro
 		Operator:         eventPayload.Operator,
 		Owner:            eventPayload.Owner,
 		BlockNumber:      e.BlockNumber,
+		TransactionID:    e.TransactionID,
 		Name:             vd.Name,
 		ContentName:      vd.ContentName,
 		ContentID:        vd.ContentID,
 		ContentType:      vd.ContentType,
 		TrustedTimestamp: time.Now().Unix(),
 		Description:      vd.Description,
+		ContentSize:      vd.ContentSize,
 	}
 	klog.V(5).Infof("[Debug] insert vd %+v, d: %+v into db", vd, d)
 

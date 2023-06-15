@@ -41,10 +41,13 @@ type KeyValue struct {
 
 // ValueDepository defines valuable fields for a depository
 type ValueDepository struct {
-	Name             string `json:"name"`
-	ContentName      string `json:"contentName"`
-	ContentType      string `json:"contentType"`
-	ContentID        string `json:"contentID"` // hash of the file
+	Name        string `json:"name"`
+	ContentName string `json:"contentName"`
+	ContentType string `json:"contentType"`
+	ContentID   string `json:"contentID"` // hash of the file
+
+	// ContentSize the size of file. unit is byte
+	ContentSize      int64  `json:"contentSize"`
 	TrustedTimestamp string `json:"trustedTimestamp"`
 	Platform         string `json:"platform"`
 	Description      string `json:"description,omitempty"`
