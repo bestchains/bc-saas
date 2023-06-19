@@ -8,5 +8,8 @@ RUN make binary WHAT=depository GOARCH=${ARCH} GOOS=${OS}
 RUN make binary WHAT=market GOARCH=${ARCH} GOOS=${OS}
 
 FROM alpine:3.16
-COPY --from=0 /go/src/github.com/bestchains/bc-saas/_output/bin/${OS}/${ARCH}/* /bin/*
+ARG ARCH=amd64
+ARG OS=linux
+
+COPY --from=0 /go/src/github.com/bestchains/bc-saas/_output/bin/${OS}/${ARCH}/* /bin/
 WORKDIR /bin
