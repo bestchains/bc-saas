@@ -37,7 +37,6 @@ func NewListener(eventsSub <-chan *client.ChaincodeEvent, registeredEvents map[e
 		eventsSub: eventsSub,
 	}
 
-	klog.Infof("listener start with blockNubmer %d")
 	l.eventsSub = eventsSub
 
 	// registeredEvents
