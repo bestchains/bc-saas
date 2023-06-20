@@ -29,14 +29,16 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"k8s.io/klog/v2"
 )
 
 var (
-	profile    = flag.String("profile", "./network.json", "profile to connect with blockchain network")
-	contract   = flag.String("contract", "market", "contract name")
-	addr       = flag.String("addr", ":9998", "used to listen and serve http requests")
-	authMethod = flag.String("auth", "none", "user authentication method, none, oidc or kubernetes")
+	profile     = flag.String("profile", "./network.json", "profile to connect with blockchain network")
+	contract    = flag.String("contract", "market", "contract name")
+	addr        = flag.String("addr", ":9998", "used to listen and serve http requests")
+	authMethod  = flag.String("auth", "none", "user authentication method, none, oidc or kubernetes")
+	enablePprof = flag.Bool("enable-pprof", false, "enable performance profiling in depository service")
 )
 
 func main() {
@@ -86,6 +88,11 @@ func run() error {
 		AuthMethod:    *authMethod,
 		SkipAuthorize: true,
 	})) // add auth middleware
+
+	//  Enable pprof
+	if *enablePprof {
+		app.Use(pprof.New())
+	}
 
 	// hyperledger handlers
 	hfContract, err := contracts.NewHyperledger(fabClient, *contract) // create a new Hyperledger contract client

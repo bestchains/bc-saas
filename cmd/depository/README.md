@@ -2,6 +2,7 @@
 ## How to verify the success of listening to contract events
 
 ### Build a client
+
 Create a simple command line tool with the following command.
 
 ```shll
@@ -21,9 +22,14 @@ go build main.go
 ./main -profile profile.json -contract depository -dsn 'postgres://bestchains:Passw0rd!@172.22.96.209:5432/bc-saas?sslmode=disable'
 ```
 
+More details about the parameters
+
+- If you want to enable pprof, you can add the flag `-enable-pprof`
+
 ### Call the contract and confirming that the data is written to the database
 
 1. call bc-saas PutUntrustValue
+
 ```shell
  curl -X POST \
   localhost:9999/basic/putUntrustValue \

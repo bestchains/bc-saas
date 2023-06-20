@@ -36,17 +36,19 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"k8s.io/klog/v2"
 )
 
 var (
-	profile    = flag.String("profile", "./network.json", "profile to connect with blockchain network")
-	contract   = flag.String("contract", "depository", "contract name")
-	addr       = flag.String("addr", ":9999", "used to listen and serve http requests")
-	db         = flag.String("db", "pg", "which database to use, default is pg(postgresql)")
-	dsn        = flag.String("dsn", "postgres://bestchains:Passw0rd!@127.0.0.1:5432/bc-saas?sslmode=disable", "database connection string")
-	authMethod = flag.String("auth", "none", "user authentication method, none, oidc or kubernetes")
+	profile     = flag.String("profile", "./network.json", "profile to connect with blockchain network")
+	contract    = flag.String("contract", "depository", "contract name")
+	addr        = flag.String("addr", ":9999", "used to listen and serve http requests")
+	db          = flag.String("db", "pg", "which database to use, default is pg(postgresql)")
+	dsn         = flag.String("dsn", "postgres://bestchains:Passw0rd!@127.0.0.1:5432/bc-saas?sslmode=disable", "database connection string")
+	authMethod  = flag.String("auth", "none", "user authentication method, none, oidc or kubernetes")
+	enablePprof = flag.Bool("enable-pprof", false, "enable performance profiling in depository service")
 )
 
 func main() {
@@ -142,6 +144,11 @@ func run() error {
 		AuthMethod:    *authMethod,
 		SkipAuthorize: true,
 	}))
+
+	//  Enable pprof
+	if *enablePprof {
+		app.Use(pprof.New())
+	}
 
 	// hyperledger handlers
 	hfContract, err := contracts.NewHyperledger(fabClient, *contract)
