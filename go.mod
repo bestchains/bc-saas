@@ -9,6 +9,7 @@ require (
 	github.com/golangci/golangci-lint v1.43.0
 	github.com/hyperledger/fabric-gateway v1.2.2
 	github.com/pkg/errors v0.9.1
+	github.com/signintech/gopdf v0.17.1
 	golang.org/x/crypto v0.7.0
 	google.golang.org/grpc v1.53.0
 	k8s.io/klog/v2 v2.90.1
@@ -159,6 +160,7 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/phayes/checkstyle v0.0.0-20170904204023-bfd46e6a821d // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
+	github.com/phpdave11/gofpdi v1.0.14-0.20211212211723-1f10f9844311 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/polyfloyd/go-errorlint v0.0.0-20210722154253-910bb7978349 // indirect
 	github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021 // indirect

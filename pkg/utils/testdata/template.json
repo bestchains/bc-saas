@@ -1,0 +1,15 @@
+{
+    "image": "./testdata/template.jpg",
+    "locations": [
+        {
+            "text": "Hello %s",
+            "inputs": [
+                "world"
+            ],
+            "x": 10,
+            "y": 20,
+            "style": "",
+            "size": 12
+        }
+    ]
+}
