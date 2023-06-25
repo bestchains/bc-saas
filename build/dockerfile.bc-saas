@@ -12,5 +12,5 @@ ARG ARCH=amd64
 ARG OS=linux
 
 COPY --from=0 /go/src/github.com/bestchains/bc-saas/_output/bin/${OS}/${ARCH}/* /bin/
-COPY --from=0 /go/src/github.com/bestchains/bc-saas/resource/* /bc-saas/resource/
+COPY --from=0 /go/src/github.com/bestchains/bc-saas/resource/ /bc-saas/resource/
 WORKDIR /bin
