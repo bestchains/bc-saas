@@ -80,7 +80,7 @@ const (
 	// defaultTtfFontPath is the default path to ttf font
 	// stsong.ttf downloaded from https://www.wfonts.com/font/stsong
 	// Reason to use this font: it supports Chinese(https://github.com/signintech/gopdf/issues/68)
-	defaultTtfFontPath = "./ttf/stsong.ttf"
+	defaultTtfFontPath = "resource/ttf/stsong.ttf"
 )
 
 // RenderOpts is the options for GoPDFTemplate.Render()
@@ -116,7 +116,10 @@ func (gop *GoPDFTemplate) Render(option RenderOpts) ([]byte, error) {
 	pdf.AddPage()
 
 	// load image template
-	pdf.Image(gop.Image, 0, 0, gopdf.PageSizeA4)
+	// if image is not set, skip loading image
+	if gop.Image != "" {
+		pdf.Image(gop.Image, 0, 0, gopdf.PageSizeA4)
+	}
 
 	// load ttf font
 	if err = pdf.AddTTFFontWithOption("font", option.TtfFontPath, gopdf.TtfOption{UseKerning: true}); err != nil {
@@ -131,8 +134,7 @@ func (gop *GoPDFTemplate) Render(option RenderOpts) ([]byte, error) {
 		}
 
 		// set position
-		pdf.SetX(location.X)
-		pdf.SetY(location.Y)
+		pdf.SetXY(location.X, location.Y)
 
 		// parse text with args
 		inputs := make([]any, len(location.Inputs))

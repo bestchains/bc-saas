@@ -142,7 +142,9 @@ curl -X POST \
 ```
 
 ### GET /basic/depositories
+
 List depositories
+
 ```shell
 curl http://localhost:9999/basic/depositories
 ```
@@ -163,6 +165,7 @@ curl http://localhost:9999/basic/depositories
 ```
 
 ### GET /basic/depositories/:kid
+
 Get depository by kid
 
 ```shell
@@ -172,3 +175,20 @@ curl http://localhost:9999/basic/depositories/5651d9ae0e5a834afda3fac0e1e743ff3c
 ```json
 {"index":"22","kid":"28fd8a24340220857c9857dbeb3f365e505951ca","platform":"bestchains","operator":"","owner":"","blockNumber":37,"name":"dep1","contentName":"","contentID":"lk7234jjsdfsf","contentType":"lk7234jjsdfsf","trustedTimestamp":"1682405989"}
 ```
+
+### GET /basic/depositories/certificate/:kid
+
+**Request:**
+
+Get depository certificate by kid
+
+```shell
+curl -XGET http://localhost:9999/basic/depositories/certificate/02e853e0f68566e62fddd9c4e014db65b7f315d9
+```
+
+**Response:**
+
+A pdf will be downloaded directly from browser with filename `02e853e0f68566e62fddd9c4e014db65b7f315d9.pdf`(`{kid}.pdf`):
+
+- Content-Type: application/octet-stream
+- Content-Disposition: attachment; filename=02e853e0f68566e62fddd9c4e014db65b7f315d9.pdf

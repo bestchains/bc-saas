@@ -19,6 +19,7 @@ package handler
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/bestchains/bc-saas/pkg/contracts"
@@ -285,4 +286,35 @@ func (h *BasicHandler) Get(ctx *fiber.Ctx) error {
 		})
 	}
 	return ctx.JSON(result)
+}
+
+func (h *BasicHandler) GetDepositoryCertificate(ctx *fiber.Ctx) error {
+	klog.Info("BasicHandler Get Depository Certificate")
+	klog.V(5).Infof(" with ctx %+v\n", *ctx)
+
+	kid := ctx.Params("kid")
+	if kid == "" {
+		ctx.Status(http.StatusInternalServerError)
+		return ctx.JSON(map[string]string{
+			"msg": "kid can't be empty",
+		})
+	}
+	language := ctx.Query("language")
+	arg := depositories.DepositoryCond{KID: kid}
+	certBytes, err := h.dbHandler.GetCertificate(arg, language)
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError)
+		if err == pg.ErrNoRows {
+			ctx.Status(http.StatusNotFound)
+		}
+		klog.Errorf("[Error] Get certificate for %s error %s", kid, err)
+		return ctx.JSON(map[string]string{
+			"msg": err.Error(),
+		})
+	}
+
+	ctx.Response().Header.Add("Content-Type", "application/octet-stream")
+	ctx.Response().Header.Add("Content-Disposition", fmt.Sprintf("attachment; filename=%s.pdf", kid))
+
+	return ctx.Send(certBytes)
 }

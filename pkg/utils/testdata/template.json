@@ -1,5 +1,5 @@
 {
-    "image": "./testdata/template.jpg",
+    "image": "../../resource/certificate_template.jpg",
     "locations": [
         {
             "text": "Hello %s",

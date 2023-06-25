@@ -49,6 +49,10 @@ var (
 	dsn         = flag.String("dsn", "postgres://bestchains:Passw0rd!@127.0.0.1:5432/bc-saas?sslmode=disable", "database connection string")
 	authMethod  = flag.String("auth", "none", "user authentication method, none, oidc or kubernetes")
 	enablePprof = flag.Bool("enable-pprof", false, "enable performance profiling in depository service")
+
+	// flags for depository certificate generation
+	templateImagePath = flag.String("cert-template-image", "resource/certificate_template.jpg", "template image for depository's certificate generation")
+	ttfFontPath       = flag.String("cert-ttf-font", "resource/ttf/stsong.ttf", "ttf font file for depository's certificate generation")
 )
 
 func main() {
@@ -108,8 +112,11 @@ func run() error {
 		if err := models.Init(pgDB); err != nil {
 			panic(err)
 		}
-		dbHandler = depositories.NewDBHandler(pgDB)
 
+		dbHandler, err = depositories.NewDBHandler(pgDB, *templateImagePath, *ttfFontPath)
+		if err != nil {
+			panic(err)
+		}
 		// inject events to database once pg is used
 		eventSub, err := fabClient.Channel(profile.Channel).ChaincodeEvents(pctx, *contract, client.WithStartBlock(
 			models.MaxBlockNumber(pgDB),
@@ -171,6 +178,7 @@ func run() error {
 	basic.Post("verifyValue", basicHandler.VerifyValue)
 	basic.Get("depositories", basicHandler.List)
 	basic.Get("depositories/:kid", basicHandler.Get)
+	basic.Get("depositories/certificate/:kid", basicHandler.GetDepositoryCertificate)
 
 	klog.Infoln("Starting a digital depository server")
 
