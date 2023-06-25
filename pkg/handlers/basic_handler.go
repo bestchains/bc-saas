@@ -315,6 +315,7 @@ func (h *BasicHandler) GetDepositoryCertificate(ctx *fiber.Ctx) error {
 
 	ctx.Response().Header.Add("Content-Type", "application/octet-stream")
 	ctx.Response().Header.Add("Content-Disposition", fmt.Sprintf("attachment; filename=%s.pdf", kid))
+	ctx.Response().Header.Add("Content-Length", fmt.Sprintf("%d", len(certBytes)))
 
 	return ctx.Send(certBytes)
 }
