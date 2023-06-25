@@ -25,6 +25,8 @@ go build main.go
 More details about the parameters
 
 - If you want to enable pprof, you can add the flag `-enable-pprof`
+- If you want to change another depository certifidate image tempalte file, you can add the flag `-cert-template-image`
+- If you want to change another depository certifidate font, you can add the flag `-cert-ttf-font`
 
 ### Call the contract and confirming that the data is written to the database
 

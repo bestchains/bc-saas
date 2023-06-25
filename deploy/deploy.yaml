@@ -35,31 +35,33 @@ spec:
             - -profile=/opt/depository/network.json
             - -contract=depository
             - -auth=oidc
+            - -cert-template-image=/bc-saas/resource/certificate_template.jpg
+            - -cert-ttf-font=/bc-saas/resource/ttf/stsong.ttf
           ports:
             - containerPort: 9999
           env:
-          - name: OIDC_CA_FILE
-            value: "/etc/oidc/oidc-server/ca.pem"
-          - name: OIDC_CLIENT_ID
-            valueFrom:
-              secretKeyRef:
-                key: oidc.client-id
-                name: kube-oidc-proxy-config
-          - name: OIDC_ISSUER_URL
-            valueFrom:
-              secretKeyRef:
-                key: oidc.issuer-url
-                name: kube-oidc-proxy-config
-          - name: OIDC_USERNAME_CLAIM
-            valueFrom:
-              secretKeyRef:
-                key: oidc.username-claim
-                name: kube-oidc-proxy-config
-          - name: OIDC_GROUPS_CLAIM
-            valueFrom:
-              secretKeyRef:
-                key: oidc.group-claim
-                name: kube-oidc-proxy-config
+            - name: OIDC_CA_FILE
+              value: "/etc/oidc/oidc-server/ca.pem"
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  key: oidc.client-id
+                  name: kube-oidc-proxy-config
+            - name: OIDC_ISSUER_URL
+              valueFrom:
+                secretKeyRef:
+                  key: oidc.issuer-url
+                  name: kube-oidc-proxy-config
+            - name: OIDC_USERNAME_CLAIM
+              valueFrom:
+                secretKeyRef:
+                  key: oidc.username-claim
+                  name: kube-oidc-proxy-config
+            - name: OIDC_GROUPS_CLAIM
+              valueFrom:
+                secretKeyRef:
+                  key: oidc.group-claim
+                  name: kube-oidc-proxy-config
           volumeMounts:
             - name: network-json
               mountPath: /opt/depository

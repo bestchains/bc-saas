@@ -28,7 +28,7 @@ func TestGoPDFTemplate_Load(t *testing.T) {
 	// Arrange
 	gop := &GoPDFTemplate{}
 	bytes := []byte(`{
-    "image": "./testdata/template.jpg",
+    "image": "../../resource/certificate_template.jpg",
     "locations": [
         {
             "text": "Hello %s",
@@ -48,7 +48,7 @@ func TestGoPDFTemplate_Load(t *testing.T) {
 
 	// Assert
 	assert.NoError(t, err)
-	assert.Equal(t, "./testdata/template.jpg", gop.Image)
+	assert.Equal(t, "../../resource/certificate_template.jpg", gop.Image)
 	assert.Len(t, gop.Locations, 1)
 	assert.Equal(t, "Hello %s", gop.Locations[0].Text)
 	assert.Equal(t, []string{"world"}, gop.Locations[0].Inputs)
@@ -68,7 +68,7 @@ func TestGoPDFTemplate_LoadFromFile(t *testing.T) {
 
 	// Assert
 	assert.NoError(t, err)
-	assert.Equal(t, "./testdata/template.jpg", gop.Image)
+	assert.Equal(t, "../../resource/certificate_template.jpg", gop.Image)
 	assert.Len(t, gop.Locations, 1)
 	assert.Equal(t, "Hello %s", gop.Locations[0].Text)
 	assert.Equal(t, []string{"world"}, gop.Locations[0].Inputs)
@@ -81,7 +81,7 @@ func TestGoPDFTemplate_LoadFromFile(t *testing.T) {
 func TestGoPDFTemplate_Render(t *testing.T) {
 	// Arrange
 	gop := &GoPDFTemplate{
-		Image: "./testdata/template.jpg",
+		Image: "../../resource/certificate_template.jpg",
 		Locations: []Location{
 			{
 				Text:   "Hello %s",
@@ -94,7 +94,7 @@ func TestGoPDFTemplate_Render(t *testing.T) {
 	}
 	option := RenderOpts{
 		PageSize:    *gopdf.PageSizeA4,
-		TtfFontPath: "./ttf/stsong.ttf",
+		TtfFontPath: "../../resource/ttf/stsong.ttf",
 		Inputs: map[string]string{
 			"name": "world",
 		},

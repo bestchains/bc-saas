@@ -17,17 +17,39 @@ limitations under the License.
 package depositories
 
 import (
+	"fmt"
+	"os"
+	"time"
+
 	"github.com/bestchains/bc-saas/pkg/models"
+	"github.com/bestchains/bc-saas/pkg/utils"
 	"github.com/go-pg/pg/v10"
 	"k8s.io/klog/v2"
 )
 
 type dbHandler struct {
+	// template image for depository
+	templateImage string
+	// config for ttf font file
+	ttfFontPath string
+
 	db *pg.DB
 }
 
-func NewDBHandler(db *pg.DB) Interface {
-	return &dbHandler{db: db}
+func NewDBHandler(db *pg.DB, templateImage string, ttpfFontPath string) (Interface, error) {
+	// check tempalte image and ttf font file exists
+	if templateImage != "" {
+		if _, err := os.Stat(templateImage); os.IsNotExist(err) {
+			return nil, fmt.Errorf("template image %s does not exist", templateImage)
+		}
+	}
+	if ttpfFontPath != "" {
+		if _, err := os.Stat(ttpfFontPath); os.IsNotExist(err) {
+			return nil, fmt.Errorf("ttf font file %s does not exist", ttpfFontPath)
+		}
+	}
+
+	return &dbHandler{db: db, templateImage: templateImage, ttfFontPath: ttpfFontPath}, nil
 }
 
 func (h *dbHandler) List(arg DepositoryCond) ([]models.Depository, int64, error) {
@@ -63,4 +85,39 @@ func (h *dbHandler) Get(arg DepositoryCond) (models.Depository, error) {
 	}
 	err := q.Select()
 	return result, err
+}
+
+// GetCertificate get certificate for depository. Only support two languages: CN and ENG
+func (h *dbHandler) GetCertificate(arg DepositoryCond, language string) ([]byte, error) {
+	// get depository
+	depository, err := h.Get(arg)
+	if err != nil {
+		return nil, err
+	}
+
+	// generate certificate
+	// FIXME: cache generated certificate
+	template := &utils.GoPDFTemplate{}
+	tpl := CertificateTemplateCN
+	if language == "ENG" {
+		tpl = CertificateTemplate
+	}
+	if err := template.Load([]byte(tpl)); err != nil {
+		return nil, err
+	}
+	// set image
+	template.Image = h.templateImage
+
+	return template.Render(utils.RenderOpts{
+		TtfFontPath: h.ttfFontPath,
+		Inputs: map[string]string{
+			"name":             depository.Name,
+			"owner":            depository.Owner,
+			"kid":              depository.KID,
+			"contentID":        depository.ContentID,
+			"transactionHash":  depository.TransactionID,
+			"trustedTimestamp": time.Unix(depository.TrustedTimestamp, 0).Format("2006-01-02 15:04:05"),
+			"currentDate":      time.Now().Format("2006-01-02"),
+		},
+	})
 }

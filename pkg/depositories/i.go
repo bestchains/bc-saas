@@ -58,5 +58,6 @@ func (dc *DepositoryCond) ToCond() ([]string, []interface{}) {
 
 type Interface interface {
 	Get(DepositoryCond) (models.Depository, error)
+	GetCertificate(cond DepositoryCond, language string) ([]byte, error)
 	List(DepositoryCond) ([]models.Depository, int64, error)
 }
