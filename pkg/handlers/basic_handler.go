@@ -299,9 +299,9 @@ func (h *BasicHandler) GetDepositoryCertificate(ctx *fiber.Ctx) error {
 			"msg": "kid can't be empty",
 		})
 	}
-	language := ctx.Query("language")
+	style := ctx.Query("style")
 	arg := depositories.DepositoryCond{KID: kid}
-	certBytes, err := h.dbHandler.GetCertificate(arg, language)
+	certBytes, err := h.dbHandler.GetCertificate(arg, depositories.Style(style))
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
 		if err == pg.ErrNoRows {

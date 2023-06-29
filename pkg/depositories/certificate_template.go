@@ -16,8 +16,23 @@ limitations under the License.
 
 package depositories
 
+type Style string
+
 const (
-	CertificateTemplate = `{
+	StyleCN  = "CN"
+	StyleENG = "ENG"
+)
+
+var (
+	// CertificateStyles is a map of certificate styles
+	CertificateStyles = map[Style]string{
+		StyleCN:  CertificateStyleCN,
+		StyleENG: CertificateStyleENG,
+	}
+)
+
+const (
+	CertificateStyleENG = `{
     "image": "./crt_tpl.jpg",
     "locations": [
         {
@@ -111,7 +126,7 @@ const (
     ]
 }`
 
-	CertificateTemplateCN = `{
+	CertificateStyleCN = `{
     "image": "./crt_tpl.jpg",
     "locations": [
         {
