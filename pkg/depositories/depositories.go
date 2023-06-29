@@ -28,19 +28,22 @@ import (
 )
 
 type dbHandler struct {
-	// template image for depository
-	templateImage string
+	// template images for depository in different style
+	templateBaseImages map[Style]string
 	// config for ttf font file
 	ttfFontPath string
 
 	db *pg.DB
 }
 
-func NewDBHandler(db *pg.DB, templateImage string, ttpfFontPath string) (Interface, error) {
+func NewDBHandler(db *pg.DB, templateBaseImages map[Style]string, ttpfFontPath string) (Interface, error) {
 	// check tempalte image and ttf font file exists
-	if templateImage != "" {
+	for style, templateImage := range templateBaseImages {
+		if _, ok := CertificateStyles[style]; !ok {
+			return nil, fmt.Errorf("invalid certificate style %s", style)
+		}
 		if _, err := os.Stat(templateImage); os.IsNotExist(err) {
-			return nil, fmt.Errorf("template image %s does not exist", templateImage)
+			return nil, fmt.Errorf("template image %s for %s does not exist", templateImage, style)
 		}
 	}
 	if ttpfFontPath != "" {
@@ -49,7 +52,7 @@ func NewDBHandler(db *pg.DB, templateImage string, ttpfFontPath string) (Interfa
 		}
 	}
 
-	return &dbHandler{db: db, templateImage: templateImage, ttfFontPath: ttpfFontPath}, nil
+	return &dbHandler{db: db, templateBaseImages: templateBaseImages, ttfFontPath: ttpfFontPath}, nil
 }
 
 func (h *dbHandler) List(arg DepositoryCond) ([]models.Depository, int64, error) {
@@ -87,26 +90,30 @@ func (h *dbHandler) Get(arg DepositoryCond) (models.Depository, error) {
 	return result, err
 }
 
-// GetCertificate get certificate for depository. Only support two languages: CN and ENG
-func (h *dbHandler) GetCertificate(arg DepositoryCond, language string) ([]byte, error) {
+// GetCertificate get certificate for depository. Only support two styles: CN and ENG
+func (h *dbHandler) GetCertificate(arg DepositoryCond, style Style) ([]byte, error) {
+	// validate certificate style
+	if style == "" {
+		style = StyleCN
+	}
+	tpl, ok := CertificateStyles[style]
+	if !ok {
+		return nil, fmt.Errorf("invalid certificate style %s", style)
+	}
+	// generate certificate
+	// FIXME: cache generated certificate
+	template := &utils.GoPDFTemplate{}
+	if err := template.Load([]byte(tpl)); err != nil {
+		return nil, err
+	}
+	// set image
+	template.Image = h.templateBaseImages[style]
+
 	// get depository
 	depository, err := h.Get(arg)
 	if err != nil {
 		return nil, err
 	}
-
-	// generate certificate
-	// FIXME: cache generated certificate
-	template := &utils.GoPDFTemplate{}
-	tpl := CertificateTemplateCN
-	if language == "ENG" {
-		tpl = CertificateTemplate
-	}
-	if err := template.Load([]byte(tpl)); err != nil {
-		return nil, err
-	}
-	// set image
-	template.Image = h.templateImage
 
 	return template.Render(utils.RenderOpts{
 		TtfFontPath: h.ttfFontPath,

@@ -31,6 +31,6 @@ func (l *loggerHandler) Get(arg DepositoryCond) (models.Depository, error) {
 	return models.Depository{}, nil
 }
 
-func (l *loggerHandler) GetCertificate(arg DepositoryCond, language string) ([]byte, error) {
+func (l *loggerHandler) GetCertificate(arg DepositoryCond, style Style) ([]byte, error) {
 	return []byte{}, nil
 }

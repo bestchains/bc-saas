@@ -51,8 +51,9 @@ var (
 	enablePprof = flag.Bool("enable-pprof", false, "enable performance profiling in depository service")
 
 	// flags for depository certificate generation
-	templateImagePath = flag.String("cert-template-image", "resource/certificate_template.jpg", "template image for depository's certificate generation")
-	ttfFontPath       = flag.String("cert-ttf-font", "resource/ttf/SourceHanSansCN-Normal.ttf", "ttf font file for depository's certificate generation")
+	templateImageCNPath  = flag.String("cert-template-image", "resource/certificate_template.jpg", "template image(in Chinese) for depository's certificate generation")
+	templateImageENGPath = flag.String("cert-template-image-eng", "resource/certificate_template_ENG.jpg", "template image(in English)for depository's certificate generation")
+	ttfFontPath          = flag.String("cert-ttf-font", "resource/ttf/SourceHanSansCN-Normal.ttf", "ttf font file for depository's certificate generation")
 )
 
 func main() {
@@ -113,7 +114,10 @@ func run() error {
 			panic(err)
 		}
 
-		dbHandler, err = depositories.NewDBHandler(pgDB, *templateImagePath, *ttfFontPath)
+		dbHandler, err = depositories.NewDBHandler(pgDB, map[depositories.Style]string{
+			depositories.StyleCN:  *templateImageCNPath,
+			depositories.StyleENG: *templateImageENGPath,
+		}, *ttfFontPath)
 		if err != nil {
 			panic(err)
 		}
