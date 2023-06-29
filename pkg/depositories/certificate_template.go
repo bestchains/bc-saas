@@ -58,14 +58,18 @@ const (
             "size": 12
         },
         {
-            "text": "Hash: %s",
+            "text": "Content Hash: %s",
             "inputs": [
                 "contentID"
             ],
             "x": 180,
             "y": 440,
             "style": "",
-            "size": 12
+            "size": 12,
+            "cell_size": {
+                "W": 300,
+                "H": 100
+            }
         },
         {
             "text": "Transaction Hash: %s",
@@ -155,7 +159,11 @@ const (
             "x": 180,
             "y": 440,
             "style": "",
-            "size": 12
+            "size": 12,
+            "cell_size": {
+                "W": 300,
+                "H": 100
+            }
         },
         {
             "text": "交易哈希: %s",

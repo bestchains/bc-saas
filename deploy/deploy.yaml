@@ -36,7 +36,7 @@ spec:
             - -contract=depository
             - -auth=oidc
             - -cert-template-image=/bc-saas/resource/certificate_template.jpg
-            - -cert-ttf-font=/bc-saas/resource/ttf/stsong.ttf
+            - -cert-ttf-font=/bc-saas/resource/ttf/SourceHanSansCN-Normal.ttf
           ports:
             - containerPort: 9999
           env:

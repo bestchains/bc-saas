@@ -52,7 +52,7 @@ var (
 
 	// flags for depository certificate generation
 	templateImagePath = flag.String("cert-template-image", "resource/certificate_template.jpg", "template image for depository's certificate generation")
-	ttfFontPath       = flag.String("cert-ttf-font", "resource/ttf/stsong.ttf", "ttf font file for depository's certificate generation")
+	ttfFontPath       = flag.String("cert-ttf-font", "resource/ttf/SourceHanSansCN-Normal.ttf", "ttf font file for depository's certificate generation")
 )
 
 func main() {

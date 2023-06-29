@@ -44,6 +44,8 @@ type Location struct {
 	// Font style and size
 	Style string `json:"style"`
 	Size  int    `json:"size"`
+	// CellSize
+	CellSize *gopdf.Rect `json:"cell_size,omitempty"`
 }
 
 // Load loads a GoPDFTemplate from bytes
@@ -143,9 +145,15 @@ func (gop *GoPDFTemplate) Render(option RenderOpts) ([]byte, error) {
 		}
 		text := fmt.Sprintf(location.Text, inputs...)
 
+		// set cell size
+		cellSize := option.CellSize
+		if location.CellSize != nil {
+			cellSize = *location.CellSize
+		}
+
 		// set text with limited witdh and height
 		// all cells has same cell size
-		if err = pdf.MultiCellWithOption(&option.CellSize, text, gopdf.CellOption{}); err != nil {
+		if err = pdf.MultiCellWithOption(&cellSize, text, gopdf.CellOption{}); err != nil {
 			return nil, fmt.Errorf("failed to set text: %w", err)
 		}
 	}
