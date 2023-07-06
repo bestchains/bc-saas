@@ -29,7 +29,7 @@ spec:
         - name: depository
           image: hyperledgerk8s/bc-saas:6b0ed39
           command:
-            - depository
+            - ./depository
           args:
             - -v=5
             - -profile=/opt/depository/network.json

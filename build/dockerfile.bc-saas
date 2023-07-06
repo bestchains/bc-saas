@@ -11,6 +11,9 @@ FROM alpine:3.16
 ARG ARCH=amd64
 ARG OS=linux
 
-COPY --from=0 /go/src/github.com/bestchains/bc-saas/_output/bin/${OS}/${ARCH}/* /bin/
 COPY --from=0 /go/src/github.com/bestchains/bc-saas/resource/ /bc-saas/resource/
-WORKDIR /bin
+COPY --from=0 /go/src/github.com/bestchains/bc-saas/_output/bin/${OS}/${ARCH}/* /bc-saas
+
+WORKDIR /bc-saas
+
+CMD ["./depository"]
